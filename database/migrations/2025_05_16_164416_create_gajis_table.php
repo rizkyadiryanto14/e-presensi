@@ -22,6 +22,7 @@ return new class extends Migration
             $table->integer('total_gaji')->default(0);
             $table->date('tanggal_dibayarkan')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->integer('gaji_pokok');
             $table->integer('tunjangan')->default(0);
             $table->timestamps();
+            $table->softDeletes();
         });
 
     }
