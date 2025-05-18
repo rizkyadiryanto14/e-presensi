@@ -82,15 +82,15 @@
                     Masuk
                 </button>
 
-                <!-- Register Link -->
-                @if (Route::has('register'))
-                    <div class="text-center mt-4">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Belum punya akun? </span>
-                        <a href="{{ route('register') }}" class="text-sm text-blue-600 hover:underline dark:text-blue-500">
-                            Daftar
-                        </a>
-                    </div>
-                @endif
+{{--                <!-- Register Link -->--}}
+{{--                @if (Route::has('register'))--}}
+{{--                    <div class="text-center mt-4">--}}
+{{--                        <span class="text-sm text-gray-600 dark:text-gray-400">Belum punya akun? </span>--}}
+{{--                        <a href="{{ route('register') }}" class="text-sm text-blue-600 hover:underline dark:text-blue-500">--}}
+{{--                            Daftar--}}
+{{--                        </a>--}}
+{{--                    </div>--}}
+{{--                @endif--}}
             </form>
 
             <div class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
