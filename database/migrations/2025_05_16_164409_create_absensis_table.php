@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('guru_id')->constrained('gurus')->onDelete('cascade');
             $table->date('tanggal');
-            $table->enum('status', ['hadir', 'izin', 'sakit', 'alpha']);
+            $table->enum('status', ['hadir', 'izin', 'sakit', 'alpha', 'terlambat']);
             $table->time('waktu_masuk')->nullable();
             $table->time('waktu_pulang')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['guru_id', 'tanggal']);
         });
