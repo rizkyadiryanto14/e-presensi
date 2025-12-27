@@ -5,15 +5,15 @@ namespace App\Services;
 use App\Models\Absensi;
 use App\Models\Guru;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Exception;
 
 class AbsensiService
 {
 
-    protected $activityService;
+    protected ActivityService $activityService;
 
     public function __construct(ActivityService $activityService)
     {
@@ -79,14 +79,14 @@ class AbsensiService
     {
         $query = Absensi::where('guru_id', $guruId);
 
-        if (isset($filters['start_date']) && isset($filters['end_date'])) {
+        if (isset($filters['waktu_masuk']) && isset($filters['waktu_pulang'])) {
             $query->whereBetween('tanggal', [
-                Carbon::parse($filters['start_date'])->toDateString(),
-                Carbon::parse($filters['end_date'])->toDateString()
+                Carbon::parse($filters['waktu_masuk'])->toDateString(),
+                Carbon::parse($filters['waktu_pulang'])->toDateString()
             ]);
         }
 
-        if (isset($filters['status']) && !empty($filters['status'])) {
+        if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
@@ -94,7 +94,7 @@ class AbsensiService
     }
 
     /**
-     * Get attendance summary for a specific teacher
+     * Get an attendance summary for a specific teacher
      *
      * @param int $guruId
      * @param string $month Format: YYYY-MM
@@ -245,7 +245,7 @@ class AbsensiService
         return $absensi;
     }
     /**
-     * Get attendance statistics for admin dashboard
+     * Get attendance statistics for the admin dashboard
      *
      * @return array
      */
@@ -296,7 +296,7 @@ class AbsensiService
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $currentDate = Carbon::create($year, $monthNumber, $day);
             // Skip weekends (Sunday)
-            if ($currentDate->dayOfWeek !== Carbon::SUNDAY) {
+            if ($currentDate->dayOfWeek !== CarbonInterface::SUNDAY) {
                 $workingDays++;
             }
         }
@@ -337,8 +337,8 @@ class AbsensiService
             $totalTerlambat = $absensiGuru->where('status', 'terlambat')->count();
             $totalTidakHadir = $absensiGuru->where('status', 'alpha')->count();
 
-            $potonganTerlambat = $totalTerlambat * 50000;
-            $potonganTidakHadir = $totalTidakHadir * 200000;
+            $potonganTerlambat = $totalTerlambat * 20000;
+            $potonganTidakHadir = $totalTidakHadir * 50000;
 
             $totalPotongan = $potonganTerlambat + $potonganTidakHadir;
             $gajiBersih = $gajiPokok + $tunjangan - $totalPotongan;
@@ -367,7 +367,7 @@ class AbsensiService
     {
         $today = Carbon::now();
         $startOfWeek = $today->copy()->startOfWeek(Carbon::MONDAY);
-        $endOfWeek = $today->copy()->endOfWeek(Carbon::SATURDAY); // Exclude Sunday
+        $endOfWeek = $today->copy()->endOfWeek(Carbon::SATURDAY);
 
         $days = [];
         $dayLabels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
@@ -407,5 +407,13 @@ class AbsensiService
             'izin' => $izinData,
             'tidak_hadir' => $tidakHadirData
         ];
+    }
+
+    /**
+     * @return int
+     */
+    public function getTotalAbsensi(): int
+    {
+        return Absensi::count();
     }
 }

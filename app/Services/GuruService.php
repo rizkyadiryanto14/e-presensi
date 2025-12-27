@@ -5,12 +5,11 @@ namespace App\Services;
 use App\Models\Guru;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Exception;
+use Throwable;
 
 class GuruService
 {
@@ -75,7 +74,7 @@ class GuruService
      * @param array $userData Data user (email, password)
      * @param bool $sendVerificationEmail
      * @return Guru
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function createGuru(array $guruData, array $userData, bool $sendVerificationEmail = true): Guru
     {
@@ -133,7 +132,7 @@ class GuruService
      * @param array $guruData
      * @param array|null $userData
      * @return Guru
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function updateGuru(int $id, array $guruData, ?array $userData = null): Guru
     {
@@ -200,7 +199,7 @@ class GuruService
      *
      * @param int $id
      * @return bool
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function deleteGuru(int $id): bool
     {
@@ -230,70 +229,6 @@ class GuruService
         }
     }
 
-    /**
-     * Restore a soft deleted teacher
-     *
-     * @param int $id
-     * @return bool
-     * @throws Exception
-     */
-    public function restoreGuru(int $id): bool
-    {
-        $guru = Guru::withTrashed()->find($id);
-        if (!$guru) {
-            throw new Exception('Guru tidak ditemukan.');
-        }
-
-        DB::beginTransaction();
-        try {
-            // Restore the guru
-            $guru->restore();
-
-            // Restore the associated user if it was soft deleted
-            $user = User::withTrashed()->find($guru->user_id);
-            if ($user && $user->trashed()) {
-                $user->restore();
-            }
-
-            DB::commit();
-            return true;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
-
-    /**
-     * Permanently delete a teacher and their user account
-     *
-     * @param int $id
-     * @return bool
-     * @throws Exception
-     */
-    public function forceDeleteGuru(int $id): bool
-    {
-        $guru = Guru::withTrashed()->find($id);
-        if (!$guru) {
-            throw new Exception('Guru tidak ditemukan.');
-        }
-
-        DB::beginTransaction();
-        try {
-            $user = $guru->user;
-            $guru->forceDelete();
-
-            // Delete user if they only have 'guru' role
-            if ($user && $user->roles->count() === 1 && $user->hasRole('guru')) {
-                $user->forceDelete(); // Permanently delete the user
-            }
-
-            DB::commit();
-            return true;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
 
     /**
      * Get statistics about teachers
@@ -320,6 +255,7 @@ class GuruService
      * @param int $guruId
      * @param string $month Format: YYYY-MM
      * @return array
+     * @throws Exception
      */
     public function calculateSalaryComponents(int $guruId, string $month): array
     {
@@ -363,5 +299,15 @@ class GuruService
                 'gaji_bersih' => $totalGaji,
             ]
         ];
+    }
+
+    /**
+     * Get the total number of teachers
+     *
+     * @return int
+     */
+    public function getTotalGuru(): int
+    {
+        return Guru::count();
     }
 }

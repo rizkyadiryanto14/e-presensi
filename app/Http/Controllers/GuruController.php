@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Guru;
+use App\Services\AbsensiService;
 use App\Services\GuruService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,11 +11,13 @@ use Illuminate\Support\Facades\Validator;
 
 class GuruController extends Controller
 {
-    protected $guruService;
+    protected GuruService $guruService;
+    protected AbsensiService $absensiService;
 
-    public function __construct(GuruService $guruService)
+    public function __construct(GuruService $guruService, AbsensiService $absensiService)
     {
         $this->guruService = $guruService;
+        $this->absensiService = $absensiService;
     }
 
     /**
@@ -236,68 +239,20 @@ class GuruController extends Controller
     }
 
     /**
-     * Display the authenticated teacher's attendance history
-     */
-    public function showMyAttendance(Request $request)
-    {
-        $guru = auth()->user()->guru;
-
-        if (!$guru) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Profil guru tidak ditemukan.');
-        }
-
-        $absensis = collect();
-
-        return view('modules.guru.attendance', compact('guru', 'absensis'));
-    }
-
-    /**
-     * Record check-in for the authenticated teacher
-     */
-//    public function checkIn(Request $request)
-//    {
-//        $guru = auth()->user()->guru;
-//
-//        if (!$guru) {
-//            return redirect()->route('dashboard')
-//                ->with('error', 'Profil guru tidak ditemukan.');
-//        }
-//
-//        return redirect()->route('guru.profile')
-//            ->with('success', 'Presensi masuk berhasil dicatat.');
-//    }
-
-    /**
-     * Record check-out for the authenticated teacher
-     */
-//    public function checkOut(Request $request)
-//    {
-//        $guru = auth()->user()->guru;
-//
-//        if (!$guru) {
-//            return redirect()->route('dashboard')
-//                ->with('error', 'Profil guru tidak ditemukan.');
-//        }
-//
-//        return redirect()->route('guru.profile')
-//            ->with('success', 'Presensi pulang berhasil dicatat.');
-//    }
-
-    /**
      * Display the authenticated teacher's profile
      */
     public function showProfile()
     {
         $user = Auth::user();
         $guru = Guru::where('user_id', $user->id)->first();
+        $historyAbsensi = $this->absensiService->getAbsensiByGuru($guru->id);
 
         if (!$guru) {
             return redirect()->route('dashboard')
                 ->with('error', 'Profil guru tidak ditemukan.');
         }
 
-        return view('modules.guru.profile', compact('guru'));
+        return view('modules.guru.profile', compact('guru', 'historyAbsensi'));
     }
 
 }

@@ -19,7 +19,7 @@ class GajiService
 
         $hadir = $absensi->where('status', 'hadir')->count();
         $alpha = $absensi->where('status', 'alpha')->count();
-        $potonganPerHari = 50000; // bisa dibuat configurable
+        $potonganPerHari = 20000;
 
         $potongan = $alpha * $potonganPerHari;
         $total = $guru->gaji_pokok + $guru->tunjangan - $potongan;

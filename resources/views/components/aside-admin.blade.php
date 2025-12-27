@@ -72,7 +72,7 @@
         <!-- Laporan - Hanya Admin dan Kepala Sekolah -->
         @if(auth()->user()->hasRole(['admin', 'kepala sekolah']))
             <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-3 mt-6 mb-2">Laporan</p>
-            <a @click="currentMenu = 'laporan'" :class="currentMenu == 'laporan' ? 'active' : ''" href="#" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+            <a @click="currentMenu = 'laporan'" :class="currentMenu == 'laporan' ? 'active' : ''" href="{{ route('admin.report.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-600 dark:text-orange-400" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0v-7z" />
                 </svg>

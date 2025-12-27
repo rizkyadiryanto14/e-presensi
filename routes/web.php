@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,7 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:guru')->group(function () {
         Route::get('/guru/profile', [GuruController::class, 'showProfile'])->name('guru.profile');
         Route::get('/guru/salary', [GuruController::class, 'showMySalary'])->name('guru.my-salary');
-        Route::get('/guru/attendance', [GuruController::class, 'showMyAttendance'])->name('guru.my-attendance');
+//        Route::get('/guru/attendance', [GuruController::class, 'showMyAttendance'])->name('guru.my-attendance');
 
         Route::get('/absensi/check-in', [AbsensiController::class, 'checkInForm'])->name('absensi.check-in');
         Route::post('/absensi/check-in', [AbsensiController::class, 'checkIn'])->name('absensi.check-in.store');
@@ -44,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth'])->middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('guru', GuruController::class);
     Route::get('guru/{id}/salary', [GuruController::class, 'showSalaryDetails'])->name('guru.salary');
+    Route::get('/report', [ReportController::class, 'index'])->name('report.index');
 });
 
 Route::middleware(['auth'])->middleware('role:kepala sekolah')->prefix('kepala-sekolah')->name('kepala-sekolah.')->group(function () {

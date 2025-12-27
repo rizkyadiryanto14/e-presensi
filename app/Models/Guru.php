@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @method static count()
+ * @method static where(string $string, string $string1)
+ * @method static avg(string $string)
+ * @method static select(string $string, \Illuminate\Contracts\Database\Query\Expression|\Illuminate\Database\Query\Expression $raw)
+ */
 class Guru extends Model
 {
     use HasFactory, SoftDeletes;

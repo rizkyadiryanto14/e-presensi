@@ -15,8 +15,8 @@ use App\Exports\AbsensiExport;
 
 class AbsensiController extends Controller
 {
-    protected $absensiService;
-    protected $guruService;
+    protected AbsensiService $absensiService;
+    protected GuruService $guruService;
 
     public function __construct(AbsensiService $absensiService, GuruService $guruService)
     {
@@ -127,7 +127,7 @@ class AbsensiController extends Controller
 
         $absensis = $this->absensiService->getAbsensiByGuru($guru->id, $filters);
 
-        // Get current month's summary
+        // Get the current month's summary
         $currentMonth = Carbon::now()->format('Y-m');
         $summary = $this->absensiService->getAttendanceSummary($guru->id, $currentMonth);
 
