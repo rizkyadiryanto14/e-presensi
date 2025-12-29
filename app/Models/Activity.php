@@ -2,13 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @method static create(array $array)
+ */
 class Activity extends Model
 {
-    use HasFactory;
 
+    /**
+     * @var string
+     */
+    protected $table = 'activities';
+
+    /**
+     * @var string[]
+     */
     protected $fillable = [
         'user_id',
         'guru_id',
@@ -17,16 +27,25 @@ class Activity extends Model
         'data'
     ];
 
+    /**
+     * @var string[]
+     */
     protected $casts = [
         'data' => 'array',
     ];
 
-    public function user()
+    /**
+     * @return BelongsTo
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function guru()
+    /**
+     * @return BelongsTo
+     */
+    public function guru(): BelongsTo
     {
         return $this->belongsTo(Guru::class);
     }

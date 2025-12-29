@@ -8,12 +8,17 @@ use App\Services\GuruService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class GuruController extends Controller
 {
     protected GuruService $guruService;
     protected AbsensiService $absensiService;
 
+    /**
+     * @param GuruService $guruService
+     * @param AbsensiService $absensiService
+     */
     public function __construct(GuruService $guruService, AbsensiService $absensiService)
     {
         $this->guruService = $guruService;
@@ -27,7 +32,6 @@ class GuruController extends Controller
     {
         $filters = [
             'search' => $request->input('search'),
-            'status_kepegawaian' => $request->input('status_kepegawaian'),
             'jabatan' => $request->input('jabatan'),
         ];
 
@@ -76,8 +80,7 @@ class GuruController extends Controller
                 'email', 'password'
             ]);
 
-            // Ambil nilai send_verification_email dari request, defaultnya true jika tidak ada
-            $sendVerificationEmail = $request->has('send_verification_email') ? (bool)$request->send_verification_email : true;
+            $sendVerificationEmail = !$request->has('send_verification_email') || $request->send_verification_email;
 
             $this->guruService->createGuru($guruData, $userData, $sendVerificationEmail);
 
@@ -97,13 +100,14 @@ class GuruController extends Controller
     {
         try {
             $guru = $this->guruService->getGuruById($id);
+            $historyAbsensi = $this->absensiService->getAbsensiByGuru($guru->id);
 
             if (!$guru) {
                 return redirect()->route('admin.guru.index')
                     ->with('error', 'Guru tidak ditemukan.');
             }
 
-            return view('modules.guru.show', compact('guru'));
+            return view('modules.guru.show', compact('guru', 'historyAbsensi'));
         } catch (\Exception $e) {
             return redirect()->route('admin.guru.index')
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -182,6 +186,7 @@ class GuruController extends Controller
 
     /**
      * Remove the specified teacher
+     * @throws Throwable
      */
     public function destroy($id)
     {

@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('gajis', function (Blueprint $table) {
             $table->id();
             $table->foreignId('guru_id')->constrained('gurus')->onDelete('cascade');
-            $table->tinyInteger('bulan');
-            $table->smallInteger('tahun');
+            $table->tinyInteger('bulan')->nullable();
+            $table->smallInteger('tahun')->nullable();
             $table->integer('jumlah_hadir')->default(0);
             $table->integer('jumlah_alpha')->default(0);
+            $table->integer('jumlah_terlambat')->default(0);
+            $table->integer('jumlah_sakit')->default(0);
             $table->integer('potongan')->default(0);
             $table->integer('total_gaji')->default(0);
             $table->date('tanggal_dibayarkan')->nullable();

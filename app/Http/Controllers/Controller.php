@@ -7,5 +7,8 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 
 abstract class Controller
 {
+    /**
+     * The controller uses the trait
+     */
     use AuthorizesRequests, ValidatesRequests;
 }

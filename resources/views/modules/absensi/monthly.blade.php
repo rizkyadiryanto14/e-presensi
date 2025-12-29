@@ -15,18 +15,20 @@
                 </svg>
                 Dashboard
             </a>
-            <a href="{{ route('absensi.daily') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-                </svg>
-                Absensi Harian
-            </a>
+            @role('admin')
+                <a href="{{ route('absensi.daily') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                    Absensi Harian
+                </a>
+            @endrole
         </div>
     </div>
 
     <!-- Month Selector & Export Button -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700 card-shadow">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
             <form action="{{ route('absensi.monthly') }}" method="GET" class="flex items-end gap-4">
                 <div class="flex-grow">
                     <label for="month" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pilih Bulan</label>
@@ -38,7 +40,7 @@
             </form>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700 card-shadow">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Export Laporan</h3>
             <div class="flex gap-3">
                 <a href="{{ route('absensi.export', ['type' => 'pdf', 'month' => $month]) }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
@@ -58,7 +60,7 @@
     </div>
 
     <!-- Monthly Stats -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700 card-shadow mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700 mb-6">
         <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-4">Statistik Bulan {{ \Carbon\Carbon::createFromFormat('Y-m', $month)->format('F Y') }}</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -81,7 +83,7 @@
     </div>
 
     <!-- Chart Card -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700 card-shadow mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700 mb-6">
         <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-4">Grafik Kehadiran</h3>
         <div class="h-80">
             <canvas id="attendanceChart"></canvas>
@@ -89,7 +91,7 @@
     </div>
 
     <!-- Teacher Attendance Summary -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 card-shadow overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="p-5 border-b border-gray-200 dark:border-gray-700">
             <h3 class="font-semibold text-gray-800 dark:text-gray-100">Ringkasan Kehadiran Guru</h3>
         </div>

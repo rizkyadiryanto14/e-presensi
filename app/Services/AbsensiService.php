@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Models\Absensi;
+use App\Models\Gaji;
 use App\Models\Guru;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
+use DomainException;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -22,8 +25,12 @@ class AbsensiService
 
     /**
      * Record attendance for a teacher
+     *
+     * @param Guru $guru
+     * @param array $data
+     * @return mixed
      */
-    public function catatAbsensi(Guru $guru, array $data)
+    public function catatAbsensi(Guru $guru, array $data): mixed
     {
         $absensi = Absensi::updateOrCreate(
             [
@@ -187,17 +194,27 @@ class AbsensiService
 
     /**
      * Record check-in for a teacher
+     *
+     * @param int $guruId
+     * @param string $status
+     * @return Absensi
      */
     public function recordCheckIn(int $guruId, string $status = 'hadir'): Absensi
     {
         $now = Carbon::now();
-        $isLate = $now->hour >= 8;
 
+        $checkOutTime = $now->copy()->setTime(13, 0, 0);
+
+        if ($now->greaterThanOrEqualTo($checkOutTime)) {
+            throw new DomainException('Absensi hari ini sudah tidak dapat dilakukan.');
+        }
+
+        $isLate = $now->format('H:i:s') > '08:00:00';
         if ($isLate && $status === 'hadir') {
             $status = 'terlambat';
         }
 
-        $absensi = Absensi::updateOrCreate(
+        $absensi = Absensi::firstOrCreate(
             [
                 'guru_id' => $guruId,
                 'tanggal' => $now->toDateString(),
@@ -209,7 +226,8 @@ class AbsensiService
             ]
         );
 
-        $guru = Guru::find($guruId);
+        $guru = Guru::findOrFail($guruId);
+
         $this->activityService->record(
             $status,
             "{$guru->nama} telah melakukan presensi masuk",
@@ -218,6 +236,8 @@ class AbsensiService
 
         return $absensi;
     }
+
+
     /**
      * Record check-out for a teacher
      */
@@ -244,6 +264,7 @@ class AbsensiService
 
         return $absensi;
     }
+
     /**
      * Get attendance statistics for the admin dashboard
      *
@@ -319,32 +340,7 @@ class AbsensiService
         $attendancePercentage = $totalPotentialAttendances > 0 ?
             round(($hadirCount + $terlambatCount + $izinCount) / $totalPotentialAttendances * 100) : 0;
 
-        // Calculate total salary for the month
-        $gurus = Guru::all();
-        $totalGaji = 0;
-
-        foreach ($gurus as $guru) {
-            // Calculate salary components for each guru
-            $gajiPokok = $guru->gaji_pokok;
-            $tunjangan = $guru->tunjangan ?? 0;
-
-            // Calculate deductions based on attendance
-            $absensiGuru = Absensi::where('guru_id', $guru->id)
-                ->whereYear('tanggal', $year)
-                ->whereMonth('tanggal', $monthNumber)
-                ->get();
-
-            $totalTerlambat = $absensiGuru->where('status', 'terlambat')->count();
-            $totalTidakHadir = $absensiGuru->where('status', 'alpha')->count();
-
-            $potonganTerlambat = $totalTerlambat * 20000;
-            $potonganTidakHadir = $totalTidakHadir * 50000;
-
-            $totalPotongan = $potonganTerlambat + $potonganTidakHadir;
-            $gajiBersih = $gajiPokok + $tunjangan - $totalPotongan;
-
-            $totalGaji += $gajiBersih;
-        }
+        $totalGaji = Gaji::sum('total_gaji');
 
         return [
             'working_days' => $workingDays,
@@ -366,8 +362,8 @@ class AbsensiService
     public function getWeeklyAttendanceStats(): array
     {
         $today = Carbon::now();
-        $startOfWeek = $today->copy()->startOfWeek(Carbon::MONDAY);
-        $endOfWeek = $today->copy()->endOfWeek(Carbon::SATURDAY);
+        $startOfWeek = $today->copy()->startOfWeek(CarbonInterface::MONDAY);
+        $endOfWeek = $today->copy()->endOfWeek(CarbonInterface::SATURDAY);
 
         $days = [];
         $dayLabels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
@@ -397,7 +393,7 @@ class AbsensiService
             $hadirData[] = $attendanceByStatus['hadir'] ?? 0;
             $terlambatData[] = $attendanceByStatus['terlambat'] ?? 0;
             $izinData[] = $attendanceByStatus['izin'] ?? 0;
-            $tidakHadirData[] = $attendanceByStatus['alpha'] ?? 0; // Using 'alpha' as in your code
+            $tidakHadirData[] = $attendanceByStatus['alpha'] ?? 0;
         }
 
         return [

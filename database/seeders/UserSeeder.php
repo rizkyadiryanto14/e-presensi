@@ -23,12 +23,12 @@ class UserSeeder extends Seeder
         $admin->assignRole('admin');
 
         $kepsek = User::firstOrCreate([
-            'email' => 'kepsek@example.com'
+            'email' => 'bendahara@example.com'
         ], [
-            'name' => 'Kepala Sekolah',
+            'name' => 'Bendahara',
             'password' => Hash::make('password'),
         ]);
 
-        $kepsek->assignRole('kepala sekolah');
+        $kepsek->assignRole('bendahara');
     }
 }
