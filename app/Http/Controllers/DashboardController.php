@@ -8,14 +8,17 @@ use App\Services\AbsensiService;
 use App\Services\GuruService;
 use App\Services\ActivityService;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    protected $absensiService;
-    protected $guruService;
-    protected $activityService;
+    protected AbsensiService $absensiService;
+    protected GuruService $guruService;
+    protected ActivityService $activityService;
 
     public function __construct(
         AbsensiService $absensiService,
@@ -29,15 +32,18 @@ class DashboardController extends Controller
     }
 
     /**
-     * Display dashboard based on user role
+     * Display dashboard based on a user role
+     *
+     * @return Factory|View|RedirectResponse|\Illuminate\View\View
+     * @throws Exception
      */
     public function index()
     {
         $user = Auth::user();
 
-        if ($user->hasRole(['admin', 'kepala sekolah'])) {
+        if ($user->hasRole(['admin', 'bendahara'])) {
             return $this->adminDashboard();
-        } elseif ($user->hasRole('guru')) {
+        } elseif ($user->hasRole(['guru'])) {
             return $this->guruDashboard();
         }
 
@@ -46,6 +52,8 @@ class DashboardController extends Controller
 
     /**
      * Dashboard for admin and principal
+     *
+     * @return Factory|View|\Illuminate\View\View
      */
     private function adminDashboard()
     {
@@ -66,6 +74,9 @@ class DashboardController extends Controller
 
     /**
      * Dashboard for teachers
+     *
+     * @return Factory|View|RedirectResponse|\Illuminate\View\View
+     * @throws Exception
      */
     private function guruDashboard()
     {
@@ -76,7 +87,6 @@ class DashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Data guru tidak ditemukan.');
         }
 
-        // Get teacher's attendance status today
         $hasCheckedIn = $this->absensiService->hasCheckedInToday($guru->id);
         $absensiToday = null;
 
@@ -97,11 +107,8 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $estimatedSalary = null;
-        if ($guru) {
-            $salaryData = $this->guruService->calculateSalaryComponents($guru->id, $currentMonth);
-            $estimatedSalary = $salaryData['komponen_gaji'];
-        }
+        $salaryData = $this->guruService->calculateSalaryComponents($guru->id, $currentMonth);
+        $estimatedSalary = $salaryData['komponen_gaji'];
 
         $recentPersonalActivities = $this->activityService->getTeacherActivities($guru->id, 5);
         $weeklyAttendance = $this->absensiService->getWeeklyAttendanceStats();

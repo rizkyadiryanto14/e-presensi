@@ -11,8 +11,7 @@
     <link rel="shortcut icon" href="{{ asset('assets/images/logo_presensi.png') }}" type="image/x-icon" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://unpkg.com/alpinejs" defer></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+
 
     <!-- Component Styling -->
    <x-admin-styling />
@@ -41,7 +40,7 @@
         <!-- Component Footer -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        <x-footer-admin />
+{{--        <x-footer-admin />--}}
     </main>
 </div>
 

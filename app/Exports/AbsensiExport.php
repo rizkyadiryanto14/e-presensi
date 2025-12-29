@@ -6,8 +6,9 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Carbon\Carbon;
+
 
 class AbsensiExport implements FromCollection, WithHeadings, WithTitle, ShouldAutoSize
 {
@@ -15,6 +16,11 @@ class AbsensiExport implements FromCollection, WithHeadings, WithTitle, ShouldAu
     protected $monthlyStats;
     protected $month;
 
+    /**
+     * @param $summaries
+     * @param $monthlyStats
+     * @param $month
+     */
     public function __construct($summaries, $monthlyStats, $month)
     {
         $this->summaries = $summaries;
@@ -22,11 +28,14 @@ class AbsensiExport implements FromCollection, WithHeadings, WithTitle, ShouldAu
         $this->month = $month;
     }
 
-    public function collection()
+    /**
+     * @return Collection
+     */
+    public function collection(): Collection
     {
         $data = new Collection();
 
-        // Add summary row
+        // Add a summary row
         $data->push([
             'Laporan Absensi Bulan: ' . Carbon::createFromFormat('Y-m', $this->month)->format('F Y'),
             '',
@@ -38,7 +47,7 @@ class AbsensiExport implements FromCollection, WithHeadings, WithTitle, ShouldAu
             ''
         ]);
 
-        // Add stats rows
+        // Add stat rows
         $data->push([
             'Total Guru: ' . $this->monthlyStats['total_guru'],
             'Hari Kerja: ' . $this->monthlyStats['working_days'],
@@ -50,7 +59,7 @@ class AbsensiExport implements FromCollection, WithHeadings, WithTitle, ShouldAu
             ''
         ]);
 
-        // Add empty row
+        // Add an empty row
         $data->push([
             '',
             '',
@@ -79,6 +88,9 @@ class AbsensiExport implements FromCollection, WithHeadings, WithTitle, ShouldAu
         return $data;
     }
 
+    /**
+     * @return string[]
+     */
     public function headings(): array
     {
         return [
@@ -93,12 +105,19 @@ class AbsensiExport implements FromCollection, WithHeadings, WithTitle, ShouldAu
         ];
     }
 
+    /**
+     * @return string
+     */
     public function title(): string
     {
         return 'Laporan Absensi ' . Carbon::createFromFormat('Y-m', $this->month)->format('F Y');
     }
 
-    private function calculatePercentage($summary)
+    /**
+     * @param $summary
+     * @return float|int
+     */
+    private function calculatePercentage($summary): float|int
     {
         if ($this->monthlyStats['working_days'] > 0) {
             return round(($summary['hadir'] + $summary['terlambat'] + $summary['izin']) / $this->monthlyStats['working_days'] * 100);

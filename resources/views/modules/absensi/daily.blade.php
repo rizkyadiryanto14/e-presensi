@@ -36,36 +36,38 @@
         </div>
     @endif
 
+    @if(auth()->user()->hasRole(['admin', 'guru']))
     <!-- Date Selector & Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700 card-shadow">
-            <form action="{{ route('absensi.daily') }}" method="GET" class="flex items-end gap-4">
-                <div class="flex-grow">
-                    <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pilih Tanggal</label>
-                    <input type="date" name="date" id="date" value="{{ $date }}" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md">
-                </div>
-                <button type="submit" class="inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Tampilkan
-                </button>
-            </form>
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
+                <form action="{{ route('absensi.daily') }}" method="GET" class="flex items-end gap-4">
+                    <div class="flex-grow">
+                        <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pilih Tanggal</label>
+                        <input type="date" name="date" id="date" value="{{ $date }}" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md">
+                    </div>
+                    <button type="submit" class="inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Tampilkan
+                    </button>
+                </form>
+            </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700 card-shadow">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Input Absensi Manual</h3>
-            <button type="button"
-                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                    data-modal-target="manualAbsensiModal"
-                    data-modal-toggle="manualAbsensiModal">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                </svg>
-                Tambah Absensi Manual
-            </button>
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Input Absensi Manual</h3>
+                <button type="button"
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        data-modal-target="manualAbsensiModal"
+                        data-modal-toggle="manualAbsensiModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Tambah Absensi Manual
+                </button>
+            </div>
         </div>
-    </div>
+    @endif
 
     <!-- Attendance Tabs -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 card-shadow overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
             <h3 class="font-semibold text-gray-800 dark:text-gray-100">Daftar Kehadiran - {{ \Carbon\Carbon::parse($date)->format('d F Y') }}</h3>
             <p class="text-sm text-gray-500 dark:text-gray-400">{{ \Carbon\Carbon::parse($date)->format('l') }}</p>
@@ -113,9 +115,11 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Durasi
                             </th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Aksi
-                            </th>
+                            @role('admin')
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Aksi
+                                </th>
+                            @endrole
                         </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -166,14 +170,16 @@
                                         -
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button type="button" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                            onclick="editAbsensi('{{ $absensi->id }}', '{{ $absensi->guru->id }}', '{{ $absensi->guru->nama }}', '{{ $absensi->tanggal }}', '{{ $absensi->status }}', '{{ $absensi->waktu_masuk }}', '{{ $absensi->waktu_pulang }}')">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                        </svg>
-                                    </button>
-                                </td>
+                                @role('admin')
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button type="button" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                onclick="editAbsensi('{{ $absensi->id }}', '{{ $absensi->guru->id }}', '{{ $absensi->guru->nama }}', '{{ $absensi->tanggal }}', '{{ $absensi->status }}', '{{ $absensi->waktu_masuk }}', '{{ $absensi->waktu_pulang }}')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                @endrole
                             </tr>
                         @empty
                             <tr>
@@ -341,10 +347,8 @@
             document.getElementById('waktu_masuk').value = '';
             document.getElementById('waktu_pulang').value = '';
 
-            // Set judul modal
             document.getElementById('manualAbsensiModalLabel').textContent = 'Tambah Absensi - ' + guruNama;
 
-            // Tampilkan modal menggunakan Flowbite
             const modalElement = document.getElementById('manualAbsensiModal');
             const modalOptions = {
                 placement: 'center',
@@ -356,7 +360,6 @@
             modal.show();
         }
 
-        // Fungsi untuk menampilkan modal edit absensi
         function editAbsensi(absensiId, guruId, guruNama, tanggal, status, waktu, waktuPulang) {
             // Set nilai form
             document.getElementById('absensi_id').value = absensiId;
@@ -364,7 +367,6 @@
             document.getElementById('tanggal').value = tanggal;
             document.getElementById('status').value = status;
 
-            // Format waktu dari HH:MM:SS ke HH:MM untuk input time
             if (waktu) {
                 const waktuArr = waktu.split(':');
                 document.getElementById('waktu_masuk').value = `${waktuArr[0]}:${waktuArr[1]}`;
@@ -379,10 +381,8 @@
                 document.getElementById('waktu_pulang').value = '';
             }
 
-            // Set judul modal
             document.getElementById('manualAbsensiModalLabel').textContent = 'Edit Absensi - ' + guruNama;
 
-            // Tampilkan modal menggunakan Flowbite
             const modalElement = document.getElementById('manualAbsensiModal');
             const modalOptions = {
                 placement: 'center',
@@ -394,9 +394,7 @@
             modal.show();
         }
 
-        // Untuk button di tabel
         document.addEventListener('DOMContentLoaded', function() {
-            // Inisialisasi Modal jika diperlukan
             const $targetEl = document.getElementById('manualAbsensiModal');
             const modal = new Modal($targetEl);
         });

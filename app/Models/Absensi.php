@@ -2,13 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @method static count()
+ * @method static where(string $string, string $today)
+ * @method static whereYear(string $string, int $year)
+ * @method static updateOrCreate(array $array, array $array1)
+ * @method static whereDate(string $string, string $format)
+ * @method static firstOrCreate(array $array, array $array1)
+ * @property mixed $status
+ */
 class Absensi extends Model
 {
-    use hasFactory, SoftDeletes;
+    use SoftDeletes;
 
     protected $table = 'absensis';
 
@@ -20,7 +29,7 @@ class Absensi extends Model
         'waktu_masuk',
     ];
 
-    public function guru()
+    public function guru(): BelongsTo
     {
         return $this->belongsTo(Guru::class);
     }

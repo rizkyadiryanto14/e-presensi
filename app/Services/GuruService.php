@@ -5,15 +5,23 @@ namespace App\Services;
 use App\Models\Guru;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Exception;
+use Throwable;
 
 class GuruService
 {
+
+    protected GajiService $gajiService;
+
+    public function __construct(GajiService $gajiService)
+    {
+        $this->gajiService = $gajiService;
+    }
+
     /**
      * Get all teachers with pagination
      *
@@ -23,7 +31,7 @@ class GuruService
      */
     public function getAllGuru(int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        $query = Guru::with('user');
+        $query = Guru::with(['user', 'latestGaji']);
 
         if (isset($filters['search'])) {
             $searchTerm = $filters['search'];
@@ -75,7 +83,7 @@ class GuruService
      * @param array $userData Data user (email, password)
      * @param bool $sendVerificationEmail
      * @return Guru
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function createGuru(array $guruData, array $userData, bool $sendVerificationEmail = true): Guru
     {
@@ -93,7 +101,7 @@ class GuruService
 
         DB::beginTransaction();
         try {
-            // Create user account first
+            // Create user accounts first
             $user = User::create([
                 'name' => $guruData['nama'],
                 'email' => $userData['email'],
@@ -133,7 +141,7 @@ class GuruService
      * @param array $guruData
      * @param array|null $userData
      * @return Guru
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function updateGuru(int $id, array $guruData, ?array $userData = null): Guru
     {
@@ -200,7 +208,7 @@ class GuruService
      *
      * @param int $id
      * @return bool
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function deleteGuru(int $id): bool
     {
@@ -220,71 +228,6 @@ class GuruService
             // Check if user only has 'guru' role and no other roles
             if ($user && $user->roles->count() === 1 && $user->hasRole('guru')) {
                 $user->delete(); // Soft delete the user
-            }
-
-            DB::commit();
-            return true;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
-
-    /**
-     * Restore a soft deleted teacher
-     *
-     * @param int $id
-     * @return bool
-     * @throws Exception
-     */
-    public function restoreGuru(int $id): bool
-    {
-        $guru = Guru::withTrashed()->find($id);
-        if (!$guru) {
-            throw new Exception('Guru tidak ditemukan.');
-        }
-
-        DB::beginTransaction();
-        try {
-            // Restore the guru
-            $guru->restore();
-
-            // Restore the associated user if it was soft deleted
-            $user = User::withTrashed()->find($guru->user_id);
-            if ($user && $user->trashed()) {
-                $user->restore();
-            }
-
-            DB::commit();
-            return true;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
-
-    /**
-     * Permanently delete a teacher and their user account
-     *
-     * @param int $id
-     * @return bool
-     * @throws Exception
-     */
-    public function forceDeleteGuru(int $id): bool
-    {
-        $guru = Guru::withTrashed()->find($id);
-        if (!$guru) {
-            throw new Exception('Guru tidak ditemukan.');
-        }
-
-        DB::beginTransaction();
-        try {
-            $user = $guru->user;
-            $guru->forceDelete();
-
-            // Delete user if they only have 'guru' role
-            if ($user && $user->roles->count() === 1 && $user->hasRole('guru')) {
-                $user->forceDelete(); // Permanently delete the user
             }
 
             DB::commit();
@@ -320,6 +263,7 @@ class GuruService
      * @param int $guruId
      * @param string $month Format: YYYY-MM
      * @return array
+     * @throws Exception
      */
     public function calculateSalaryComponents(int $guruId, string $month): array
     {
@@ -328,40 +272,61 @@ class GuruService
             throw new Exception('Guru tidak ditemukan.');
         }
 
-        // Get absences for the specified month
-        $absensiService = app(AbsensiService::class);
-        $absensis = $absensiService->getAbsensiByGuruAndMonth($guruId, $month);
-
-        $totalHadir = $absensis->where('status', 'hadir')->count();
-        $totalTerlambat = $absensis->where('status', 'terlambat')->count();
-        $totalIzin = $absensis->where('status', 'izin')->count();
-        $totalTidakHadir = $absensis->where('status', 'tidak_hadir')->count();
-
-        $potonganTerlambat = $totalTerlambat * 50000;
-        $potonganTidakHadir = $totalTidakHadir * 200000;
+        $getGaji = $this->gajiService->getAllGajiById($guruId);
 
         $gajiPokok = $guru->gaji_pokok;
         $tunjangan = $guru->tunjangan;
-        $totalPotongan = $potonganTerlambat + $potonganTidakHadir;
-        $totalGaji = $gajiPokok + $tunjangan - $totalPotongan;
 
         return [
             'guru' => $guru,
             'bulan' => $month,
             'kehadiran' => [
-                'hadir' => $totalHadir,
-                'terlambat' => $totalTerlambat,
-                'izin' => $totalIzin,
-                'tidak_hadir' => $totalTidakHadir,
+                'hadir' => $getGaji->jumlah_hadir ?? 0,
+                'terlambat' => $getGaji->jumlah_terlambat ?? 0,
+                'sakit' => $getGaji->jumlah_sakit ?? 0,
+                'tidak_hadir' => $getGaji->jumlah_alpha ?? 0,
             ],
             'komponen_gaji' => [
                 'gaji_pokok' => $gajiPokok,
                 'tunjangan' => $tunjangan,
-                'potongan_terlambat' => $potonganTerlambat,
-                'potongan_tidak_hadir' => $potonganTidakHadir,
-                'total_potongan' => $totalPotongan,
-                'gaji_bersih' => $totalGaji,
+                'total_potongan' => $getGaji->potongan ?? 0,
+                'gaji_bersih' => $getGaji->total_gaji ?? 0,
             ]
         ];
     }
+
+    /**
+     * Get the total number of teachers
+     *
+     * @return int
+     */
+    public function getTotalGuru(): int
+    {
+        return Guru::count();
+    }
+
+    public function getAllListAbsensi(): Collection
+    {
+        return Guru::query()
+            ->withCount([
+                'absensis as total_absensi',
+
+                'absensis as total_hadir' => function($q){
+                $q->where('status', 'hadir');
+                },
+
+                'absensis as total_terlambat' => function($q){
+                $q->where('status','terlambat');
+                },
+
+                'absensis as total_sakit' => function($q){
+                $q->where('status', 'sakit');
+                },
+
+                'absensis as total_alpha' => function($q){
+                $q->where('status', 'alpha');
+                }
+            ])->get();
+    }
+
 }

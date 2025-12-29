@@ -16,7 +16,7 @@
                 Kembali
             </a>
 
-            @if(auth()->user()->hasRole('admin'))
+            @if(auth()->user()->hasRole(['admin']))
                 <a href="{{ route('admin.guru.edit', $guru->id) }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
@@ -107,49 +107,10 @@
 
         <!-- Informasi Kehadiran dan Gaji -->
         <div class="lg:col-span-2 space-y-6">
-            <!-- Grafik Kehadiran Bulanan -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 card-shadow overflow-hidden">
-                <div class="p-5 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="font-semibold text-gray-800 dark:text-gray-100">Kehadiran Bulanan</h3>
-                </div>
-
-                <div class="p-5">
-                    <!-- Dummy Chart - In a real implementation, this would be a chart showing attendance data -->
-                    <div class="h-64 flex items-end space-x-2">
-                        @php
-                            $months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
-                            $values = [85, 92, 90, 88, 95, 91];
-                        @endphp
-
-                        @foreach($months as $index => $month)
-                            <div class="flex-1 flex flex-col items-center">
-                                <div class="w-full bg-blue-500 dark:bg-blue-600 rounded-t-lg" style="height: {{ $values[$index] }}%"></div>
-                                <span class="text-xs mt-2 text-gray-500 dark:text-gray-400">{{ $month }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                        <div class="flex flex-wrap justify-between">
-                            <div class="flex items-center mb-2">
-                                <div class="h-3 w-3 rounded-full bg-blue-500 dark:bg-blue-600 mr-2"></div>
-                                <span class="text-xs text-gray-700 dark:text-gray-300">Persentase Kehadiran</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Riwayat Absensi -->
             <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 card-shadow overflow-hidden">
                 <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                     <h3 class="font-semibold text-gray-800 dark:text-gray-100">Riwayat Absensi Terbaru</h3>
-                    <div>
-                        <select class="text-xs bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg py-1 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                            <option>Bulan Ini</option>
-                            <option>Bulan Lalu</option>
-                        </select>
-                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -171,58 +132,35 @@
                         </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        <!-- Dummy data for demonstration -->
-                        @for($i = 10; $i > 0; $i--)
+                        @php
+                            $statusClasses = [
+                                'hadir' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+                                'terlambat' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+                                'izin' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+                                'tidak_hadir' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+                            ];
+                        @endphp
+
+                        @foreach($historyAbsensi as $record)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    {{ date('d M Y', strtotime("-$i days")) }}
+                                    {{ $record['tanggal'] }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @php
-                                        $statuses = ['hadir', 'hadir', 'hadir', 'terlambat', 'izin'];
-                                        $status = $statuses[array_rand($statuses)];
-                                        $statusClasses = [
-                                            'hadir' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-                                            'terlambat' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-                                            'izin' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                                        ];
-                                    @endphp
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClasses[$status] }}">
-                                        {{ ucfirst($status) }}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClasses[$record['status']] }}">
+                                        {{ ucfirst($record['status']) }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    @if($status == 'izin')
-                                        -
-                                    @else
-                                        @php
-                                            $minutes = $status == 'terlambat' ? rand(15, 45) : rand(0, 15);
-                                            $time = strtotime("07:00:00 +$minutes minutes");
-                                            echo date('H:i', $time) . ' WIB';
-                                        @endphp
-                                    @endif
+                                    {{ $record['waktu_masuk'] ? $record['waktu_masuk'].'WITA' : 'Belum Presensi Masuk' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    @if($status == 'izin')
-                                        -
-                                    @else
-                                        @php
-                                            $minutes = rand(0, 30);
-                                            $time = strtotime("15:00:00 +$minutes minutes");
-                                            echo date('H:i', $time) . ' WIB';
-                                        @endphp
-                                    @endif
+                                    {{ $record['waktu_pulang'] ? $record['waktu_pulang'].'WITA' : 'Belum Presensi Keluar' }}
                                 </td>
                             </tr>
-                        @endfor
+                        @endforeach
                         </tbody>
                     </table>
-                </div>
-
-                <div class="p-4 border-t border-gray-200 dark:border-gray-700 text-center">
-                    <a href="#" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
-                        Lihat semua riwayat
-                    </a>
                 </div>
             </div>
         </div>

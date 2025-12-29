@@ -96,7 +96,7 @@
                             </div>
 
                             <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 text-center">
-                                <a href="#" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                                <a href="{{ route('absensi.history') }}" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
                                     Lihat detail kehadiran
                                 </a>
                             </div>
@@ -119,7 +119,7 @@
                             </div>
 
                             <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 text-center">
-                                <a href="#" class="text-sm font-medium text-green-600 dark:text-green-400 hover:underline">
+                                <a href="{{ route('guru.my-salary', $guru->id) }}" class="text-sm font-medium text-green-600 dark:text-green-400 hover:underline">
                                     Lihat slip gaji
                                 </a>
                             </div>
@@ -215,13 +215,6 @@
 
             <!-- Riwayat Presensi Terbaru -->
             <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 card-shadow overflow-hidden">
-                <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                    <h3 class="font-semibold text-gray-800 dark:text-gray-100">Riwayat Presensi Terbaru</h3>
-                    <a href="#" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
-                        Lihat semua
-                    </a>
-                </div>
-
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
@@ -241,16 +234,7 @@
                         </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        <!-- Dummy data untuk demonstrasi -->
                         @php
-                            $dummyData = [
-                                ['date' => date('d M Y', strtotime('-1 day')), 'status' => 'hadir', 'in' => '07:30', 'out' => '15:30'],
-                                ['date' => date('d M Y', strtotime('-2 day')), 'status' => 'hadir', 'in' => '07:25', 'out' => '15:35'],
-                                ['date' => date('d M Y', strtotime('-3 day')), 'status' => 'terlambat', 'in' => '08:15', 'out' => '15:45'],
-                                ['date' => date('d M Y', strtotime('-4 day')), 'status' => 'hadir', 'in' => '07:28', 'out' => '15:40'],
-                                ['date' => date('d M Y', strtotime('-5 day')), 'status' => 'izin', 'in' => '-', 'out' => '-'],
-                            ];
-
                             $statusClasses = [
                                 'hadir' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
                                 'terlambat' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
@@ -259,10 +243,10 @@
                             ];
                         @endphp
 
-                        @foreach($dummyData as $record)
+                        @foreach($historyAbsensi as $record)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    {{ $record['date'] }}
+                                    {{ $record['tanggal'] }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClasses[$record['status']] }}">
@@ -270,10 +254,10 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    {{ $record['in'] }} WIB
+                                    {{ $record['waktu_masuk'] ? $record['waktu_masuk'].'WITA' : 'Belum Presensi Masuk' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    {{ $record['out'] }} WIB
+                                    {{ $record['waktu_pulang'] ? $record['waktu_pulang'].'WITA' : 'Belum Presensi Keluar' }}
                                 </td>
                             </tr>
                         @endforeach

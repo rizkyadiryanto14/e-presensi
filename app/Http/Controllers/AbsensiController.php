@@ -5,27 +5,46 @@ namespace App\Http\Controllers;
 use App\Models\Guru;
 use App\Models\Absensi;
 use App\Services\AbsensiService;
+use App\Services\GajiService;
 use App\Services\GuruService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use DomainException;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AbsensiExport;
+use PhpOffice\PhpSpreadsheet\Exception;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AbsensiController extends Controller
 {
-    protected $absensiService;
-    protected $guruService;
+    protected AbsensiService $absensiService;
+    protected GuruService $guruService;
+    protected GajiService $gajiService;
 
-    public function __construct(AbsensiService $absensiService, GuruService $guruService)
+    /**
+     * @param AbsensiService $absensiService
+     * @param GuruService $guruService
+     * @param GajiService $gajiService
+     */
+    public function __construct(AbsensiService $absensiService, GuruService $guruService, GajiService $gajiService)
     {
         $this->absensiService = $absensiService;
         $this->guruService = $guruService;
+        $this->gajiService = $gajiService;
     }
+
 
     /**
      * Dashboard for admin to view attendance statistics
+     *
+     * @return Factory|\Illuminate\Contracts\View\View|View
      */
     public function dashboard()
     {
@@ -40,6 +59,8 @@ class AbsensiController extends Controller
 
     /**
      * Display attendance form for teachers to check in/out
+     *
+     * @return Factory|\Illuminate\Contracts\View\View|RedirectResponse|View
      */
     public function checkInForm()
     {
@@ -66,28 +87,41 @@ class AbsensiController extends Controller
 
     /**
      * Process check-in
+     *
+     * @param Request $request
+     * @return RedirectResponse
      */
     public function checkIn(Request $request)
     {
-        $user = Auth::user();
-        $guru = Guru::where('user_id', $user->id)->first();
+        try {
+            $user = Auth::user();
 
-        if (!$guru) {
-            return redirect()->route('dashboard')->with('error', 'Anda tidak memiliki akses ke halaman ini');
+            $guru = Guru::where('user_id', $user->id)->firstOrFail();
+
+            $status = $request->input('status', 'hadir');
+            $absensi = $this->absensiService->recordCheckIn($guru->id, $status);
+
+            return redirect()->route('absensi.check-in')
+                ->with(
+                    'success',
+                    'Absensi berhasil dicatat. Status: ' . ucfirst($absensi->status)
+                );
+
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+
+        } catch (ModelNotFoundException) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke halaman ini');
         }
-
-        $status = $request->input('status', 'hadir');
-
-        $absensi = $this->absensiService->recordCheckIn($guru->id, $status);
-
-        return redirect()->route('absensi.check-in')
-            ->with('success', 'Absensi berhasil dicatat. Status: ' . ucfirst($absensi->status));
     }
 
     /**
      * Process check-out
+     *
+     * @return RedirectResponse
      */
-    public function checkOut(Request $request)
+    public function checkOut()
     {
         $user = Auth::user();
         $guru = Guru::where('user_id', $user->id)->first();
@@ -97,6 +131,7 @@ class AbsensiController extends Controller
         }
 
         $absensi = $this->absensiService->recordCheckOut($guru->id);
+        $this->gajiService->hitungGaji($guru);
 
         if (!$absensi) {
             return redirect()->route('absensi.check-in')
@@ -109,6 +144,9 @@ class AbsensiController extends Controller
 
     /**
      * Display attendance history for a teacher
+     *
+     * @param Request $request
+     * @return Factory|\Illuminate\Contracts\View\View|RedirectResponse|View
      */
     public function history(Request $request)
     {
@@ -127,7 +165,7 @@ class AbsensiController extends Controller
 
         $absensis = $this->absensiService->getAbsensiByGuru($guru->id, $filters);
 
-        // Get current month's summary
+        // Get the current month's summary
         $currentMonth = Carbon::now()->format('Y-m');
         $summary = $this->absensiService->getAttendanceSummary($guru->id, $currentMonth);
 
@@ -136,6 +174,9 @@ class AbsensiController extends Controller
 
     /**
      * Admin view to display all teacher attendance for a specific day
+     *
+     * @param Request $request
+     * @return Factory|\Illuminate\Contracts\View\View|View
      */
     public function daily(Request $request)
     {
@@ -154,6 +195,9 @@ class AbsensiController extends Controller
 
     /**
      * Admin view to display monthly attendance reports
+     *
+     * @param Request $request
+     * @return Factory|\Illuminate\Contracts\View\View|View
      */
     public function monthly(Request $request)
     {
@@ -166,6 +210,9 @@ class AbsensiController extends Controller
 
     /**
      * Admin function to manually record attendance
+     *
+     * @param Request $request
+     * @return RedirectResponse
      */
     public function recordManual(Request $request)
     {
@@ -193,6 +240,11 @@ class AbsensiController extends Controller
 
     /**
      * Export attendance data
+     *
+     * @param Request $request
+     * @return Response|BinaryFileResponse
+     * @throws Exception
+     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      */
     public function export(Request $request)
     {

@@ -110,8 +110,8 @@
                         </div>
 
                         <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800 print:bg-white print:border print:border-gray-300">
-                            <h4 class="text-xs font-semibold text-blue-800 dark:text-blue-400 print:text-gray-800 uppercase tracking-wider">Izin</h4>
-                            <p class="text-2xl font-bold text-blue-700 dark:text-blue-300 print:text-gray-800 mt-1">{{ $salaryComponents['kehadiran']['izin'] }} Hari</p>
+                            <h4 class="text-xs font-semibold text-blue-800 dark:text-blue-400 print:text-gray-800 uppercase tracking-wider">Sakit</h4>
+                            <p class="text-2xl font-bold text-blue-700 dark:text-blue-300 print:text-gray-800 mt-1">{{ $salaryComponents['kehadiran']['sakit'] }} Hari</p>
                         </div>
 
                         <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-100 dark:border-red-800 print:bg-white print:border print:border-gray-300">
@@ -137,16 +137,6 @@
                     <div class="flex justify-between">
                         <span class="text-sm text-gray-500 dark:text-gray-400 print:text-gray-600">Tunjangan</span>
                         <span class="text-sm font-medium text-gray-800 dark:text-gray-200 print:text-gray-800">Rp {{ number_format($salaryComponents['komponen_gaji']['tunjangan'], 0, ',', '.') }}</span>
-                    </div>
-
-                    <div class="flex justify-between">
-                        <span class="text-sm text-red-500 dark:text-red-400 print:text-red-500">Potongan Terlambat</span>
-                        <span class="text-sm font-medium text-red-500 dark:text-red-400 print:text-red-500">- Rp {{ number_format($salaryComponents['komponen_gaji']['potongan_terlambat'], 0, ',', '.') }}</span>
-                    </div>
-
-                    <div class="flex justify-between">
-                        <span class="text-sm text-red-500 dark:text-red-400 print:text-red-500">Potongan Tidak Hadir</span>
-                        <span class="text-sm font-medium text-red-500 dark:text-red-400 print:text-red-500">- Rp {{ number_format($salaryComponents['komponen_gaji']['potongan_tidak_hadir'], 0, ',', '.') }}</span>
                     </div>
 
                     <div class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700 print:border-gray-300">
